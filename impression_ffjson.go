@@ -48,12 +48,15 @@ func (mj *Impression) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	}
 	if mj.Video != nil {
 		if true {
-			/* Struct fall back. type=openrtb.Video kind=struct */
 			buf.WriteString(`"video":`)
-			err = buf.Encode(mj.Video)
-			if err != nil {
-				return err
+
+			{
+				err = mj.Video.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
 			}
+
 			buf.WriteByte(',')
 		}
 	}
@@ -124,12 +127,15 @@ func (mj *Impression) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	}
 	if mj.Pmp != nil {
 		if true {
-			/* Struct fall back. type=openrtb.Pmp kind=struct */
 			buf.WriteString(`"pmp":`)
-			err = buf.Encode(mj.Pmp)
-			if err != nil {
-				return err
+
+			{
+				err = mj.Pmp.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
 			}
+
 			buf.WriteByte(',')
 		}
 	}
@@ -543,18 +549,13 @@ handle_Banner:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.Banner == nil {
 			uj.Banner = new(Banner)
 		}
 
-		err = uj.Banner.UnmarshalJSON(tbuf)
+		err = uj.Banner.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -567,16 +568,23 @@ handle_Video:
 	/* handler: uj.Video type=openrtb.Video kind=struct */
 
 	{
-		/* Falling back. type=openrtb.Video kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			uj.Video = nil
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Video)
-		if err != nil {
-			return fs.WrapErr(err)
+		if uj.Video == nil {
+			uj.Video = new(Video)
 		}
+
+		err = uj.Video.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -869,16 +877,23 @@ handle_Pmp:
 	/* handler: uj.Pmp type=openrtb.Pmp kind=struct */
 
 	{
-		/* Falling back. type=openrtb.Pmp kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			uj.Pmp = nil
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Pmp)
-		if err != nil {
-			return fs.WrapErr(err)
+		if uj.Pmp == nil {
+			uj.Pmp = new(Pmp)
 		}
+
+		err = uj.Pmp.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value

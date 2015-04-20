@@ -57,12 +57,15 @@ func (mj *Request) MarshalJSONBuf(buf fflib.EncodingBuffer) error {
 	}
 	if mj.Site != nil {
 		if true {
-			/* Struct fall back. type=openrtb.Site kind=struct */
 			buf.WriteString(`"site":`)
-			err = buf.Encode(mj.Site)
-			if err != nil {
-				return err
+
+			{
+				err = mj.Site.MarshalJSONBuf(buf)
+				if err != nil {
+					return err
+				}
 			}
+
 			buf.WriteByte(',')
 		}
 	}
@@ -689,15 +692,63 @@ handle_Imp:
 	/* handler: uj.Imp type=[]openrtb.Impression kind=slice */
 
 	{
-		/* Falling back. type=[]openrtb.Impression kind=slice */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Imp)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+			uj.Imp = nil
+		} else {
+
+			uj.Imp = make([]Impression, 0)
+
+			wantVal := true
+
+			for {
+
+				var v Impression
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: v type=openrtb.Impression kind=struct */
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = v.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				uj.Imp = append(uj.Imp, v)
+				wantVal = false
+			}
 		}
 	}
 
@@ -709,16 +760,23 @@ handle_Site:
 	/* handler: uj.Site type=openrtb.Site kind=struct */
 
 	{
-		/* Falling back. type=openrtb.Site kind=struct */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+
+			uj.Site = nil
+
+			state = fflib.FFParse_after_value
+			goto mainparse
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Site)
-		if err != nil {
-			return fs.WrapErr(err)
+		if uj.Site == nil {
+			uj.Site = new(Site)
 		}
+
+		err = uj.Site.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+		if err != nil {
+			return err
+		}
+		state = fflib.FFParse_after_value
 	}
 
 	state = fflib.FFParse_after_value
@@ -737,18 +795,13 @@ handle_App:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.App == nil {
 			uj.App = new(App)
 		}
 
-		err = uj.App.UnmarshalJSON(tbuf)
+		err = uj.App.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -769,18 +822,13 @@ handle_Device:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.Device == nil {
 			uj.Device = new(Device)
 		}
 
-		err = uj.Device.UnmarshalJSON(tbuf)
+		err = uj.Device.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -801,18 +849,13 @@ handle_User:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.User == nil {
 			uj.User = new(User)
 		}
 
-		err = uj.User.UnmarshalJSON(tbuf)
+		err = uj.User.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -1216,18 +1259,13 @@ handle_Regs:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.Regs == nil {
 			uj.Regs = new(Regulations)
 		}
 
-		err = uj.Regs.UnmarshalJSON(tbuf)
+		err = uj.Regs.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}
@@ -1268,18 +1306,13 @@ handle_Pmp:
 			goto mainparse
 		}
 
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
-		}
-
 		if uj.Pmp == nil {
 			uj.Pmp = new(Pmp)
 		}
 
-		err = uj.Pmp.UnmarshalJSON(tbuf)
+		err = uj.Pmp.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
 		if err != nil {
-			return fs.WrapErr(err)
+			return err
 		}
 		state = fflib.FFParse_after_value
 	}

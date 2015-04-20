@@ -3,6 +3,8 @@ package openrtb
 import (
 	"encoding/json"
 	"testing"
+
+	"github.com/pquerna/ffjson/ffjson"
 )
 
 var requests = [][]byte{
@@ -35,5 +37,12 @@ func BenchmarkUnmarshalRequest(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		req := &Request{}
 		json.Unmarshal(requests[i%len(requests)], req)
+	}
+}
+
+func BenchmarkUnmarshalRequestFF(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		req := &Request{}
+		ffjson.Unmarshal(requests[i%len(requests)], req)
 	}
 }

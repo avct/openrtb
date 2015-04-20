@@ -319,15 +319,63 @@ handle_Segment:
 	/* handler: uj.Segment type=[]openrtb.Segment kind=slice */
 
 	{
-		/* Falling back. type=[]openrtb.Segment kind=slice */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Segment)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+			uj.Segment = nil
+		} else {
+
+			uj.Segment = make([]Segment, 0)
+
+			wantVal := true
+
+			for {
+
+				var v Segment
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: v type=openrtb.Segment kind=struct */
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = v.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				uj.Segment = append(uj.Segment, v)
+				wantVal = false
+			}
 		}
 	}
 
@@ -2116,15 +2164,63 @@ handle_Deals:
 	/* handler: uj.Deals type=[]openrtb.DirectDeal kind=slice */
 
 	{
-		/* Falling back. type=[]openrtb.DirectDeal kind=slice */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Deals)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+			uj.Deals = nil
+		} else {
+
+			uj.Deals = make([]DirectDeal, 0)
+
+			wantVal := true
+
+			for {
+
+				var v DirectDeal
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: v type=openrtb.DirectDeal kind=struct */
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = v.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				uj.Deals = append(uj.Deals, v)
+				wantVal = false
+			}
 		}
 	}
 
@@ -3817,15 +3913,63 @@ handle_Data:
 	/* handler: uj.Data type=[]openrtb.Data kind=slice */
 
 	{
-		/* Falling back. type=[]openrtb.Data kind=slice */
-		tbuf, err := fs.CaptureField(tok)
-		if err != nil {
-			return fs.WrapErr(err)
+
+		{
+			if tok != fflib.FFTok_left_brace && tok != fflib.FFTok_null {
+				return fs.WrapErr(fmt.Errorf("cannot unmarshal %s into Go value for ", tok))
+			}
 		}
 
-		err = json.Unmarshal(tbuf, &uj.Data)
-		if err != nil {
-			return fs.WrapErr(err)
+		if tok == fflib.FFTok_null {
+			uj.Data = nil
+		} else {
+
+			uj.Data = make([]Data, 0)
+
+			wantVal := true
+
+			for {
+
+				var v Data
+
+				tok = fs.Scan()
+				if tok == fflib.FFTok_error {
+					goto tokerror
+				}
+				if tok == fflib.FFTok_right_brace {
+					break
+				}
+
+				if tok == fflib.FFTok_comma {
+					if wantVal == true {
+						// TODO(pquerna): this isn't an ideal error message, this handles
+						// things like [,,,] as an array value.
+						return fs.WrapErr(fmt.Errorf("wanted value token, but got token: %v", tok))
+					}
+					continue
+				} else {
+					wantVal = true
+				}
+
+				/* handler: v type=openrtb.Data kind=struct */
+
+				{
+					if tok == fflib.FFTok_null {
+
+						state = fflib.FFParse_after_value
+						goto mainparse
+					}
+
+					err = v.UnmarshalJSONFFLexer(fs, fflib.FFParse_want_key)
+					if err != nil {
+						return err
+					}
+					state = fflib.FFParse_after_value
+				}
+
+				uj.Data = append(uj.Data, v)
+				wantVal = false
+			}
 		}
 	}
 
